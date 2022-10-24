@@ -1,8 +1,9 @@
 <?php
 
+use App\Http\Controllers\FollowController;
 use App\Http\Controllers\PostsController;
 use App\Http\Controllers\ProfilesController;
-use Illuminate\Support\Facades\Artisan;
+use App\Mail\NewUserWelcomeMail;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,42 +17,24 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
 Auth::routes();
 
-//Route::get('/profile/{user}', [ProfilesController::class, 'index']);
+Route::get('/email', function () {
+    return new NewUserWelcomeMail();
+});
 
-Route::resource('/profile', ProfilesController::class)->middleware('auth');
+
+//Follows
+Route::post('/follow/{user}', [FollowController::class, 'store']);
+Route::get('/profile/{profile}/followers', [FollowController::class, 'showFollowers'])->name('showFollowers');
+Route::get('/profile/{profile}/following', [FollowController::class, 'showFollowing'])->name('showFollowing');
+
+//Profiles
+Route::resource('/profile', ProfilesController::class);
+
+//Posts
+Route::get('/', [PostsController::class, 'index']);
 Route::resource('/post', PostsController::class)->middleware('auth');
 
-Route::get('storage/{filename}', function ($filename) {
-    $path = storage_path('public/' . $filename);
 
-    if (!File::exists($path)) {
-        abort(404);
-    }
-
-    $file = File::get($path);
-    $type = File::mimeType($path);
-
-    $response = Response::make($file, 200);
-    $response->header("Content-Type", $type);
-
-    return $response;
-});
-
-Route::post('process', function (Request $request) {
-    // cache the file
-    $file = $request->file('photo');
-
-    // generate a new filename. getClientOriginalExtension() for the file extension
-    $filename = 'profile-photo-' . time() . '.' . $file->getClientOriginalExtension();
-
-    // save to storage/app/photos as the new $filename
-    $path = $file->storeAs('photos', $filename);
-
-    dd($path);
-});

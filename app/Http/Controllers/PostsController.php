@@ -5,19 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Facades\Image;
 
 
 class PostsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
     public function index()
     {
-        //
+        $users = auth()->user()->following->pluck('user_id');
+
+        $posts = Post::whereIn('user_id', $users)->with('user')->latest()->paginate(5);
+
+        return view('posts.index')
+            ->with('posts', $posts);
     }
 
     /**
@@ -50,12 +60,15 @@ class PostsController extends Controller
 
         $imagePath = request('image')->storeAs('uploads', $imageName, 'public');
 
+        $image = Image::make(public_path("storage/{$imagePath}"))->fit(1000);
+        $image->save();
+
         $user->posts()->create([
             'caption' => $data['caption'],
             'image' => $imagePath
             ]);
 
-        return redirect()->route('profile.index', $user)
+        return redirect()->route('profile.show', $user->profile->id )
             ->with('success', 'You has been created post ');
     }
 
@@ -63,12 +76,13 @@ class PostsController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     *
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function show($id)
+    public function show( Post $post)
     {
-        dd($id);
-//
+        return view('posts.show')
+            ->with('post', $post);
     }
 
     /**

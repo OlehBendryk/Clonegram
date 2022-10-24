@@ -4,13 +4,17 @@
 <div class="container justify-content-center d-flex col-9">
         <div class="row">
             <div class="col-3 p-5">
-                <img src="https://i.pinimg.com/236x/b1/f2/38/b1f23895d056575c384c47471138b66b--ukraine-women-wedding-art.jpg" class="rounded-circle" width="160" height="160"  alt="">
+                <img src="{{ $user->profile->profileImage() }}" class="rounded-circle" width="160" height="160"  alt="">
             </div>
+
             <div class="col-9 align-self-start p-5">
                 <div class="d-flex justify-content-between align-items-baseline">
                     <h3>{{ $user->username }}</h3>
                     <a href="{{ route('post.create') }}">Add New Post</a>
                 </div>
+
+                    <a href="{{ route('profile.edit', $user->profile->id) }}">Edit Profile</a>
+
                 <div class="col d-flex mt-3">
                     <div class=""><strong>{{ $user->posts()->count() }}</strong> posts</div>
                     <div class="px-5"><strong>25.8K</strong> followers</div>
@@ -31,11 +35,10 @@
             @foreach($user->posts as $post)
                 <div class="col-4 mb-4">
                     <a href="{{ route('post.show', $post) }}">
-                        <img src="{{'/storage/' . $post->image }}" class="w-100 h-100" alt="">
+                        <img src="{{'/storage/' . $post->image }}" class="w-100" alt="">
                     </a>
                 </div>
             @endforeach
         </div>
-
 </div>
 @endsection
